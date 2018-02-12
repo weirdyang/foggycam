@@ -42,6 +42,12 @@ brew install ffmpeg
 
 ## How To Start
 
+Make sure you install the requirements for the project, by `cd`-ing in the folder with the project, and running:
+
+```
+pip install -r requirements.txt
+```
+
 Run `python start.py` after you configured the settings above. Exit by pressing <kbd>Ctrl</kbd>+<kbd>C</kbd>.
 
 ## Disclaimer

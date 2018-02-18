@@ -64,6 +64,7 @@ class FoggyCam(object):
         self.initialize_user()
 
     def initialize_twof_session(self, time_token):
+        """Creates the first session to get the access token and cookie, with 2FA enabled."""
         print ("Intializing 2FA session...")
 
         target_url = self.nest_session_url + "?=_" + time_token
@@ -130,7 +131,7 @@ class FoggyCam(object):
                     two_factor_token = unauth_content["2fa_token"]
                     phone_truncated = unauth_content["truncated_phone_number"]
 
-                    print ("Enter PIN you just received on number ending with ", phone_truncated)
+                    print ("Enter PIN you just received on number ending with", phone_truncated)
                     pin = input()
 
                     payload = {"pin":pin ,"2fa_token":two_factor_token}

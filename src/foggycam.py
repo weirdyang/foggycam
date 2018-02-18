@@ -11,6 +11,7 @@ from subprocess import Popen, PIPE
 import uuid
 import threading
 import time
+from datetime import datetime
 import subprocess
 from azurestorageprovider import AzureStorageProvider
 
@@ -30,6 +31,7 @@ class FoggyCam(object):
     nest_user_url = 'https://home.nest.com/api/0.1/user/#USERID#/app_launch'
     nest_api_login_url = 'https://webapi.camera.home.nest.com/api/v1/login.login_nest'
     nest_image_url = 'https://nexusapi-us1.camera.home.nest.com/get_image?uuid=#CAMERAID#&width=#WIDTH#&cachebuster=#CBUSTER#'
+    nest_verify_pin_url = 'https://home.nest.com/api/0.1/2fa/verify_pin'
 
     nest_user_request_payload = {
         "known_bucket_types":["quartz"],
@@ -61,6 +63,30 @@ class FoggyCam(object):
         self.login()
         self.initialize_user()
 
+    def initialize_twof_session(self, time_token):
+        print ("Intializing 2FA session...")
+
+        target_url = self.nest_session_url + "?=_" + time_token
+        print (target_url)
+
+        try:
+            request = urllib.request.Request(target_url)
+            request.add_header('Authorization', 'Basic %s' % self.nest_access_token)
+
+            response = self.merlin.open(request)
+            session_data = response.read()
+
+            session_json = json.loads(session_data)
+
+            self.nest_access_token = session_json['access_token']
+            self.nest_access_token_expiration = session_json['expires_in']
+            self.nest_user_id = session_json['userid']
+
+            print (session_data)
+        except urllib.request.HTTPError as err:
+            print (err)
+
+
     def initialize_session(self):
         """Creates the first session to get the access token and cookie."""
 
@@ -72,26 +98,77 @@ class FoggyCam(object):
         request = urllib.request.Request(self.nest_session_url, binary_data)
         request.add_header('Content-Type', 'application/json')
 
-        response = self.merlin.open(request)
-        session_data = response.read()
-        session_json = json.loads(session_data)
+        try:
+            response = self.merlin.open(request)
+            session_data = response.read()
+            session_json = json.loads(session_data)
 
-        self.nest_access_token = session_json['access_token']
-        self.nest_access_token_expiration = session_json['expires_in']
-        self.nest_user_id = session_json['userid']
+            self.nest_access_token = session_json['access_token']
+            self.nest_access_token_expiration = session_json['expires_in']
+            self.nest_user_id = session_json['userid']
 
-        print ('INFO: [PARSED] Captured authentication token:')
-        print (self.nest_access_token)
+            print ('INFO: [PARSED] Captured authentication token:')
+            print (self.nest_access_token)
 
-        print ('INFO: [PARSED] Captured expiration date for token:')
-        print (self.nest_access_token_expiration)
+            print ('INFO: [PARSED] Captured expiration date for token:')
+            print (self.nest_access_token_expiration)
 
-        cookie_data = dict((cookie.name, cookie.value) for cookie in self.cookie_jar)
-        for cookie in cookie_data:
-            print (cookie)
+            cookie_data = dict((cookie.name, cookie.value) for cookie in self.cookie_jar)
+            for cookie in cookie_data:
+                print (cookie)
 
-        print ('INFO: [COOKIE] Captured authentication token:')
-        print (cookie_data["cztoken"])
+            print ('INFO: [COOKIE] Captured authentication token:')
+            print (cookie_data["cztoken"])
+        except urllib.request.HTTPError as err:
+            if err.code == 401:
+                error_message = err.read()
+                unauth_content = json.loads(error_message)
+
+                if unauth_content["status"].lower() == "verification_pending":
+                    print ("Pending 2FA verification!")
+
+                    two_factor_token = unauth_content["2fa_token"]
+                    phone_truncated = unauth_content["truncated_phone_number"]
+
+                    print ("Enter PIN you just received on number ending with ", phone_truncated)
+                    pin = input()
+
+                    payload = {"pin":pin ,"2fa_token":two_factor_token}
+                    binary_data = json.dumps(payload).encode('utf-8')
+
+                    request = urllib.request.Request(self.nest_verify_pin_url, binary_data)
+                    request.add_header('Content-Type', 'application/json')
+
+                    try:
+                        response = self.merlin.open(request)
+                        pin_attempt = response.read()
+
+                        parsed_pin_attempt = json.loads(pin_attempt)
+                        if parsed_pin_attempt["status"].lower() == "id_match_positive":
+                            print ("2FA verification successful.")
+
+                            utc_date = datetime.utcnow()
+                            utc_millis_str = str(int(utc_date.timestamp())*1000)
+                            
+                            print ("Targetting new session with timestamp: ", utc_millis_str)
+                            
+                            cookie_data = dict((cookie.name, cookie.value) for cookie in self.cookie_jar)
+
+                            print ('INFO: [COOKIE] Captured authentication token:')
+                            print (cookie_data["cztoken"])
+
+                            self.nest_access_token = parsed_pin_attempt['access_token']
+
+                            self.initialize_twof_session(utc_millis_str)
+                        else:
+                            print ("Could not verify. Exiting...")
+                            exit()
+                    
+                    except:
+                        traceback.print_exc()
+
+                        print ("Failed 2FA checks. Exiting...")
+                        exit()
 
         print ('INFO: Session initialization complete!')
 

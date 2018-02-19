@@ -1,0 +1,11 @@
+tools/
+_temp/
+capture/
+
+config.json
+\.DS_Store
+
+\.vscode/
+
+*.pyc
+*.bin

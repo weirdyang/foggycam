@@ -1,6 +1,7 @@
 """FoggyCam captures Nest camera images and generates a video."""
 
 from urllib.request import urlopen
+import pickle
 import urllib
 import json
 from http.cookiejar import CookieJar
@@ -59,9 +60,37 @@ class FoggyCam(object):
         self.local_path = os.path.dirname(os.path.abspath(__file__))
         self.temp_dir_path = os.path.join(self.local_path, '_temp')
 
-        self.initialize_session()
+        self.unpickle_cookies()
+
+        try:
+            utc_date = datetime.utcnow()
+            utc_millis_str = str(int(utc_date.timestamp())*1000)
+            self.initialize_twof_session(utc_millis_str)
+        except:
+            self.initialize_session()
+        
         self.login()
         self.initialize_user()
+    
+    def unpickle_cookies(self):
+        with open("cookies.txt", 'rb') as f:
+            pickled_cookies = pickle.load(f)
+
+            for pickled_cookie in pickled_cookies:
+                self.cookie_jar.set_cookie(pickled_cookie)
+
+            cookie_data = dict((cookie.name, cookie.value) for cookie in self.cookie_jar)
+            print ('INFO: [COOKIE] Captured authentication token:')
+            print (cookie_data["cztoken"])
+
+            self.nest_access_token = cookie_data["cztoken"]
+
+            print (pickled_cookies)
+
+    def pickle_cookies(self):
+        """Store the cookies locally to reduce auth calls."""
+        print ("Pickling cookies...")
+        pickle.dump([c for c in self.cookie_jar], open("cookies.txt", "wb"))
 
     def initialize_twof_session(self, time_token):
         """Creates the first session to get the access token and cookie, with 2FA enabled."""
@@ -83,7 +112,7 @@ class FoggyCam(object):
             self.nest_access_token_expiration = session_json['expires_in']
             self.nest_user_id = session_json['userid']
 
-            print (session_data)
+            self.pickle_cookies()
         except urllib.request.HTTPError as err:
             print (err)
 

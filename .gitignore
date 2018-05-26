@@ -1,8 +1,7 @@
 tools/
 _temp/
 capture/
-src/cookies.bin
-src/cookies.txt
+src/cookies*
 
 config.json
 \.DS_Store

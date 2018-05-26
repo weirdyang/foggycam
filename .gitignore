@@ -1,6 +1,7 @@
 tools/
 _temp/
 capture/
+src/cookies*
 
 config.json
 \.DS_Store
@@ -8,3 +9,4 @@ config.json
 \.vscode/
 
 *.pyc
+*.bin

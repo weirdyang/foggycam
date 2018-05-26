@@ -57,3 +57,9 @@ Run `python start.py` after you configured the settings above. Exit by pressing 
 No claims are made in regards to the stability of the application, or its applicability for your purposes. Use at your own risk. Code is licensed under the [MIT License](https://opensource.org/licenses/MIT). Code can change at any time with no prior notice.
 
 **DO NOT USE** in critical security/surveillance scenarios.
+
+## Troubleshooting
+
+## Getting `urlopen error [SSL: CERTIFICATE_VERIFY_FAILED]`
+
+On macOS, run  `pip install certifi` and then `/Applications/Python\ 3.6/Install\ Certificates.command`.

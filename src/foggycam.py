@@ -343,7 +343,6 @@ class FoggyCam(object):
                             for chunk in response:
                                 declaration_file.write(chunk)
                             shutil.copyfileobj(response.raw, declaration_file) 
-                            # declaration_file.write(file_declaration)
 
                         # Check if we have ffmpeg locally
                         use_terminal = False

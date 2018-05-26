@@ -15,6 +15,7 @@ import time
 from datetime import datetime
 import subprocess
 from azurestorageprovider import AzureStorageProvider
+import shutil
 
 class FoggyCam(object):
     """FoggyCam client class that performs capture operations."""
@@ -342,8 +343,7 @@ class FoggyCam(object):
                         use_terminal = False
                         ffmpeg_path = ''
 
-                        exist = subprocess.call('command -v ffmpeg >> /dev/null', shell=True)
-                        if exist == 0:
+                        if shutil.which("ffmpeg"):
                             ffmpeg_path = 'ffmpeg'
                             use_terminal = True
                         else:

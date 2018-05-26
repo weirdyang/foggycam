@@ -310,9 +310,9 @@ class FoggyCam(object):
             image_url = self.nest_image_url.replace('#CAMERAID#', camera).replace('#CBUSTER#', str(file_id)).replace('#WIDTH#', str(config.width))
 
             request = urllib.request.Request(image_url)
-            request.add_header('accept', 'accept:image/webp,image/apng,image/*,*/*;q=0.8')
+            request.add_header('accept', 'image/webp,image/apng,image/*,*/*;q=0.9')
             request.add_header('accept-encoding', 'gzip, deflate, br')
-            request.add_header('user-agent', 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Mobile Safari/537.36')
+            request.add_header('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
             request.add_header('referer','https://home.nest.com/')
 
             try:
@@ -336,8 +336,13 @@ class FoggyCam(object):
                         for buffer_entry in camera_buffer[camera]:
                             file_declaration = file_declaration + 'file \'' + camera_image_folder + '/' + buffer_entry + '.jpg\'\n'
                         concat_file_name = os.path.join(self.temp_dir_path, camera + '.txt')
-                        with open(concat_file_name, 'w') as declaration_file:
-                            declaration_file.write(file_declaration)
+
+                        # Make sure that the content is decoded
+                        response.raw.decode_content = True
+                        with open(concat_file_name, 'wb') as declaration_file:
+                            for chunk in response:
+                                declaration_file.write(chunk)
+                            shutil.copyfileobj(response.raw, declaration_file) 
 
                         # Check if we have ffmpeg locally
                         use_terminal = False

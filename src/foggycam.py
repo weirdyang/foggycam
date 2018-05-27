@@ -307,19 +307,27 @@ class FoggyCam(object):
         while self.is_capturing:
             file_id = str(uuid.uuid4().hex)
 
-            image_url = self.nest_image_url.replace('#CAMERAID#', camera).replace('#CBUSTER#', str(file_id)).replace('#WIDTH#', str(config.width))
+            utc_date = datetime.utcnow()
+            utc_millis_str = str(int(utc_date.timestamp())*1000)
+
+            print ('Applied cache buster: ', utc_millis_str)
+
+            image_url = self.nest_image_url.replace('#CAMERAID#', camera).replace('#CBUSTER#', utc_millis_str).replace('#WIDTH#', str(config.width))
 
             request = urllib.request.Request(image_url)
             request.add_header('accept', 'image/webp,image/apng,image/*,*/*;q=0.9')
             request.add_header('accept-encoding', 'gzip, deflate, br')
             request.add_header('user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
             request.add_header('referer','https://home.nest.com/')
+            request.add_header('authority','nexusapi-us1.camera.home.nest.com')
 
             try:
                 response = self.merlin.open(request)
+                time.sleep(5)
 
                 with open(camera_path + '/' + file_id + '.jpg', 'wb') as image_file:
-                    image_file.write(response.read())
+                    for chunk in response:
+                        image_file.write(chunk)
 
                 # Check if we need to compile a video
                 if config.produce_video:
@@ -338,11 +346,9 @@ class FoggyCam(object):
                         concat_file_name = os.path.join(self.temp_dir_path, camera + '.txt')
 
                         # Make sure that the content is decoded
-                        response.raw.decode_content = True
-                        with open(concat_file_name, 'wb') as declaration_file:
-                            for chunk in response:
-                                declaration_file.write(chunk)
-                            shutil.copyfileobj(response.raw, declaration_file) 
+
+                        with open(concat_file_name, 'w') as declaration_file:
+                            declaration_file.write(file_declaration)
 
                         # Check if we have ffmpeg locally
                         use_terminal = False

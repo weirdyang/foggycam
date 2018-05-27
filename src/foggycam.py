@@ -31,8 +31,7 @@ class FoggyCam(object):
     nest_session_url = 'https://home.nest.com/session'
     nest_user_url = 'https://home.nest.com/api/0.1/user/#USERID#/app_launch'
     nest_api_login_url = 'https://webapi.camera.home.nest.com/api/v1/login.login_nest'
-    #nest_image_url = 'https://nexusapi-us1.camera.home.nest.com/get_image?uuid=#CAMERAID#&width=#WIDTH#&cachebuster=#CBUSTER#'
-    nest_image_url = 'https://nexusapi-us1.camera.home.nest.com/get_image?uuid=#CAMERAID#&cachebuster=#CBUSTER#'
+    nest_image_url = 'https://nexusapi-us1.camera.home.nest.com/get_image?uuid=#CAMERAID#&width=#WIDTH#&cachebuster=#CBUSTER#'
     nest_verify_pin_url = 'https://home.nest.com/api/0.1/2fa/verify_pin'
 
     nest_user_request_payload = {
@@ -325,7 +324,7 @@ class FoggyCam(object):
             try:
                 response = self.merlin.open(request)
                 time.sleep(5)
-                
+
                 with open(camera_path + '/' + file_id + '.jpg', 'wb') as image_file:
                     for chunk in response:
                         image_file.write(chunk)

@@ -1,5 +1,6 @@
 # 📹 foggycam
 
+![Build Status](https://travis-ci.org/dend/foggycam.svg?branch=master)
 
 ![Foggycam logo](images/logo.jpg)
 

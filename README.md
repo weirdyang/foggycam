@@ -2,8 +2,6 @@
 
 ![Build Status](https://travis-ci.org/dend/foggycam.svg?branch=master)
 
-**Current Release:** 2.0 (Analog Artifact - _Preview_)
-
 A tool to capture Nest video streams locally or to the Azure cloud, even for users without a Nest subscription. The current release is tested on macOS. Windows and Linux adaptations coming soon (minor tweaks required).
 
 >**NOTE:** Audio recording is currently not supported.

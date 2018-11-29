@@ -10,5 +10,5 @@ install:
   - pip install -r src/requirements.txt
 # command to run tests
 script:
-  - cp _config.json config.json
-  - python src/start.py
+  - cd tests
+  - pytest

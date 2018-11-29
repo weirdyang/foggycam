@@ -17,7 +17,7 @@ def test_foggycam_unpickle_cookies():
        None, None, '/', None, False, False, 'TestCookie', None, None, None)
 
     foggycam.cookie_jar.set_cookie(cztoken_cookie)
-
+    foggycam.pickle_cookies()
     foggycam.unpickle_cookies()
 
     assert foggycam.nest_access_token

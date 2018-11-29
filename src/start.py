@@ -13,4 +13,5 @@ print (CONFIG_PATH)
 CONFIG = json.load(open(CONFIG_PATH), object_hook=lambda d: namedtuple('X', d.keys())(*d.values()))
 
 CAM = FoggyCam(username=CONFIG.username, password=CONFIG.password)
+CAM.start()
 CAM.capture_images(CONFIG)

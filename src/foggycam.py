@@ -60,6 +60,8 @@ class FoggyCam(object):
         self.local_path = os.path.dirname(os.path.abspath(__file__))
         self.temp_dir_path = os.path.join(self.local_path, '_temp')
 
+
+    def start(self):
         # It's important to try and load the cookies first to check
         # if we can avoid logging in.
         try:
